@@ -24,11 +24,11 @@ jobs:
           python -m pip install --upgrade pip
           # Установка зависимостей проекта
           pip install -r requirements.txt
-          # Установка фиксированных версий линтеров и тестового фреймворка
-          pip install black==25.9.0 isort==6.0.1 flake8==7.3.0 mypy==1.18.2 pytest==8.4.2
+          # Фиксированные версии линтеров и тестового фреймворка
+          pip install black==25.9.0 isort==6.0.1 flake8==7.3.0 mypy==1.18.2 pytest==8.4.2 pytest-asyncio==0.22.0
 
       - name: Run black
-        run: black --check . || true  # || true позволяет увидеть ошибки без остановки workflow
+        run: black --check . || true
 
       - name: Run isort
         run: isort --check-only . || true
@@ -41,3 +41,4 @@ jobs:
 
       - name: Run tests
         run: pytest -v tests
+
