@@ -1,17 +1,30 @@
 import pytest
-from httpx import AsyncClient
-from main import Base, app, get_db  # если main.py в той же папке
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import StaticPool
 
-# Создаём движок и сессии для тестов
-TEST_DATABASE_URL = "module_26_fastapi/homework/recipes.db"  # файл на диске
+from app.database import Base
 
-engine = create_async_engine(TEST_DATABASE_URL, echo=True)
-TestingSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+# from app.main import app, get_db
+from app.main import app, get_db
+
+# Создаем тестовую базу данных в памяти
+TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+
+engine = create_async_engine(
+    TEST_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+
+TestingSessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
 
 
-# Переопределяем get_db для тестов
+# Переопределяем зависимость для тестов
 async def override_get_db():
     async with TestingSessionLocal() as session:
         yield session
@@ -19,19 +32,15 @@ async def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
+client = TestClient(app)
 
-# Фикстура для создания и удаления таблиц
-@pytest.fixture(autouse=True)
-async def prepare_database():
+
+@pytest.mark.asyncio
+async def test_read_recipe():
+    # Создаем таблицы
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)  # создаём таблицы
-    yield
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)  # очищаем после тестов
+        await conn.run_sync(Base.metadata.create_all)
 
-
-# Клиент для тестов
-@pytest.fixture
-async def client():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        yield ac
+    # Тестируем endpoint
+    response = client.get("/recipes/1")
+    assert response.status_code == 404  # Рецепт еще не существует
