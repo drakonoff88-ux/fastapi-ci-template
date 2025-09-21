@@ -8,7 +8,7 @@ from sqlalchemy import select
 # from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, Integer, String, Text
-from schemas import Recipe, RecipeCreate
+from app.schemas import Recipe, RecipeCreate
 
 DATABASE_URL = "sqlite+aiosqlite:///./recipes.db"
 

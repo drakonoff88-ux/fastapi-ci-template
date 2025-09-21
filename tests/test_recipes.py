@@ -1,7 +1,7 @@
 import pytest
+from database import Base, engine
 from httpx import AsyncClient
 from main import app
-from database import Base, engine
 
 
 @pytest.fixture(autouse=True, scope="module")

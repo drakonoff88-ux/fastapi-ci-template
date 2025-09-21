@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+from main import RecipeModel, get_db  # импорт модели и сессии
+from models_schemas import RecipeCreate, RecipeOut
 from sqlalchemy import select
-
-from main import get_db, RecipeModel  # импорт модели и сессии
-from models_schemas import RecipeOut, RecipeCreate
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
